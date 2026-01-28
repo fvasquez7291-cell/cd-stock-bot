@@ -33,21 +33,16 @@ def check_stock(url):
     r = requests.get(url, headers=HEADERS, timeout=20)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    # ❌ producto agotado explícito
+    page_text = soup.get_text().lower()
+
+    # ❌ señales explícitas de agotado
+    if "agotado" in page_text:
+        return False
+
     if soup.select_one(".out-of-stock"):
         return False
 
-    # ❌ no existe formulario de compra
-    cart_form = soup.select_one("form.cart")
-    if not cart_form:
-        return False
-
-    # ❌ botón deshabilitado
-    button = cart_form.select_one("button")
-    if not button or button.has_attr("disabled"):
-        return False
-
-    # ✅ stock real
+    # ✅ si no hay señales claras de agotado, asumimos disponible
     return True
 
 
