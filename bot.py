@@ -29,21 +29,45 @@ def send_telegram(msg):
     requests.post(url, json={"chat_id": CHAT_ID, "text": msg})
 
 
+def is_out_of_stock(soup):
+    text = soup.get_text().lower()
+
+    if "agotado" in text:
+        return True
+
+    if soup.select_one(".out-of-stock"):
+        return True
+
+    return False
+
+
+def is_in_stock(soup):
+    text = soup.get_text().lower()
+
+    if "añadir al carrito" in text:
+        return True
+
+    if "add to cart" in text:
+        return True
+
+    if soup.select_one("form.cart"):
+        return True
+
+    return False
+
+
 def check_stock(url):
     r = requests.get(url, headers=HEADERS, timeout=20)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    page_text = soup.get_text().lower()
-
-    # ❌ señales explícitas de agotado
-    if "agotado" in page_text:
+    if is_out_of_stock(soup):
         return False
 
-    if soup.select_one(".out-of-stock"):
-        return False
+    if is_in_stock(soup):
+        return True
 
-    # ✅ si no hay señales claras de agotado, asumimos disponible
-    return True
+    # Estado ambiguo → lo tratamos como agotado por seguridad
+    return False
 
 
 # 🔹 Cargar estado anterior
