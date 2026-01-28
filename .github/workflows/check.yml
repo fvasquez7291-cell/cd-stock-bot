@@ -31,3 +31,11 @@ jobs:
       - name: Run stock checker
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python bot.py
+
+      - name: Upload current stock state
+        uses: actions/upload-artifact@v4
+        with:
+          name: stock-state
+          path: last_state.txt
