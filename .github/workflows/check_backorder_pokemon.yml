@@ -1,0 +1,41 @@
+name: Check Backorder Pokemon Products
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download previous state
+        uses: actions/download-artifact@v4
+        with:
+          name: backorder-state
+          path: .
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 python-telegram-bot==13.15
+
+      - name: Run backorder bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python bot_backorder_pokemon.py
+
+      - name: Save current state
+        uses: actions/upload-artifact@v4
+        with:
+          name: backorder-state
+          path: productos_previos.txt
